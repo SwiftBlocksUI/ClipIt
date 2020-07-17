@@ -7,6 +7,9 @@ SwiftBlocksUI is a way to write interactive Slack messages and modal dialogs
 (also known as Slack "applications")
 using a SwiftUI like declarative style.
 
+Explained in blog article/tutorial: 
+[Instant “SwiftUI” Flavoured Slack Apps](http://www.alwaysrightinstitute.com/swiftblocksui/).
+
 This repository contains the ClipIt demo,
 loosely based on the official Slack tutorial:
 [Make your Slack app accessible directly from a message](https://api.slack.com/tutorials/message-action).
@@ -48,6 +51,55 @@ swift build
 
 Or open the `Package.swift` in Xcode and build it there.
 
+## Full Source
+
+```swift
+#!/usr/bin/swift sh
+
+import SwiftBlocksUI // @SwiftBlocksUI ~> 0.8.0
+
+dotenv.config()
+
+struct ClipItForm: Blocks {
+
+  @State(\.messageText) var messageText
+  @State var importance = "medium"
+  
+  var body: some Blocks {
+    View("Save it to ClipIt!") {
+      TextEditor("Message Text", text: $messageText)
+      
+      Picker("Importance", selection: $importance,
+             placeholder: "Select importance")
+      {
+        "High 💎💎✨".tag("high")
+        "Medium 💎"  .tag("medium")
+        "Low ⚪️"     .tag("low")
+      }
+      
+      Submit("CliptIt") {
+        console.log("Clipping:", self.messageText, self.importance)
+      }
+    }
+  }
+}
+
+struct ClipIt: App {
+  
+  var body: some Endpoints {
+    Group { // only necessary w/ Swift <5.3
+      Use(logger("dev"),
+          bodyParser.urlencoded(),
+          sslCheck(verifyToken(allowUnsetInDebug: true)))
+
+      MessageAction("clipit") {
+        ClipItForm()
+      }
+    }
+  }
+}
+try ClipIt.main()
+```
 
 ## Environment Variables
 
